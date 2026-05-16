@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetBee Auth Gateway</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #121212; color: #ffffff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #1E1E1E; padding: 32px; border-radius: 16px; border: 1px solid #333; text-align: center; max-width: 400px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        h2 { color: #FFC107; margin-bottom: 8px; }
+        p { color: #B0B0B0; font-size: 14px; line-height: 1.5; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #FFC107; animation: spin 1s linear infinite; margin: 16px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div id="status-icon" class="spinner"></div>
+        <h2 id="status-title">Verifying Account...</h2>
+        <p id="status-message">Connecting to BudgetBee secure validation ledger pipelines.</p>
+    </div>
+
+    <script>
+        // 1. Paste your Firebase Configuration matrix here from project settings
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKPdpZd-uRwR2LG2QQRgBiYDIFW02Ieto",
+            authDomain: "budgetbee-prod-dan.firebaseapp.com",
+            projectId: "budgetbee-prod-dan",
+            storageBucket: "budgetbee-prod-dan.appspot.com",
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+
+        // 2. Parse out the action codes sent by the email link parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const actionCode = urlParams.get('oobCode');
+
+        const titleEl = document.getElementById('status-title');
+        const msgEl = document.getElementById('status-message');
+        const iconEl = document.getElementById('status-icon');
+
+        if (mode === 'verifyEmail' && actionCode) {
+            firebase.auth().applyActionCode(actionCode)
+                .then(() => {
+                    iconEl.className = ""; 
+                    iconEl.innerHTML = "✅";
+                    iconEl.style.fontSize = "32px";
+                    titleEl.innerText = "Verification Complete!";
+                    titleEl.style.color = "#4DB6AC";
+                    msgEl.innerText = "Your BudgetBee account profile is now verified. You can return to the mobile application and sign in securely.";
+                })
+                .catch((error) => {
+                    iconEl.className = "";
+                    iconEl.innerHTML = "❌";
+                    iconEl.style.fontSize = "32px";
+                    titleEl.innerText = "Verification Failed";
+                    titleEl.style.color = "#E57373";
+                    msgEl.innerText = error.message;
+                });
+        } else {
+            iconEl.className = "";
+            titleEl.innerText = "Invalid Security Link";
+            msgEl.innerText = "The authentication routing parameters are missing or broken.";
+        }
+    </script>
+</body>
+</html>
